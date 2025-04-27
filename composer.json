@@ -1,0 +1,26 @@
+{
+    "name": "OC Framework",
+    "authors": [
+        {
+            "name": "omarchouman",
+            "email": "omar.chouman0@gmail.com"
+        }
+    ],
+    "require": {
+        "illuminate/collections": "^12.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Core\\": "Core/",
+            "Http\\": "Http/"
+        }
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.8"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
