@@ -2,80 +2,182 @@
 
 namespace Core;
 
-use Core\Middleware\Auth;
-use Core\Middleware\Guest;
 use Core\Middleware\Middleware;
+use Exception;
 
 class Router
 {
-    protected $routes = [];
+    protected array $routes = [];
 
-    public function add($method, $uri, $controller)
+    protected array $groupStack = [];
+
+    /**
+     * @param $uri
+     * @param $controller
+     * @return $this
+     */
+    public function get($uri, $controller): static
     {
+        return $this->add('GET', $uri, $controller);
+    }
+
+    /**
+     * @param $uri
+     * @param $controller
+     * @return $this
+     */
+    public function post($uri, $controller): static
+    {
+        return $this->add('POST', $uri, $controller);
+    }
+
+    /**
+     * @param $uri
+     * @param $controller
+     * @return $this
+     */
+    public function delete($uri, $controller): static
+    {
+        return $this->add('DELETE', $uri, $controller);
+    }
+
+    /**
+     * @param $uri
+     * @param $controller
+     * @return $this
+     */
+    public function patch($uri, $controller): static
+    {
+        return $this->add('PATCH', $uri, $controller);
+    }
+
+    /**
+     * @param $uri
+     * @param $controller
+     * @return $this
+     */
+    public function put($uri, $controller): static
+    {
+        return $this->add('PUT', $uri, $controller);
+    }
+
+    /**
+     * @param $method
+     * @param $uri
+     * @param $controller
+     * @return $this
+     */
+    public function add($method, $uri, $controller): static
+    {
+        $uri = $this->prefix() . trim($uri, '/');
+        $middleware = $this->middlewareFromGroup();
+
         $this->routes[] = [
-            'uri' => $uri,
+            'uri' => '/' . trim($uri, '/'),
             'controller' => $controller,
-            'method' => $method,
-            'middleware' => null
+            'method' => strtoupper($method),
+            'middleware' => $middleware,
         ];
 
         return $this;
     }
 
-    public function get($uri, $controller)
-    {
-        return $this->add('GET', $uri, $controller);
-    }
-
-    public function post($uri, $controller)
-    {
-        return $this->add('POST', $uri, $controller);
-    }
-
-    public function delete($uri, $controller)
-    {
-        return $this->add('DELETE', $uri, $controller);
-    }
-
-    public function patch($uri, $controller)
-    {
-        return $this->add('PATCH', $uri, $controller);
-    }
-
-    public function put($uri, $controller)
-    {
-        return $this->add('PUT', $uri, $controller);
-    }
-
-    public function only($key)
+    /**
+     * @param $key
+     * @return void
+     */
+    public function only($key): void
     {
         $this->routes[array_key_last($this->routes)]['middleware'] = $key;
     }
 
-    public function route($uri, $method)
+    /**
+     * @param  string|array  $middleware
+     * @return $this
+     */
+    public function middleware(string|array $middleware): static
     {
-        foreach ($this->routes as $route) {
-            if ($route['uri'] == $uri && $route['method'] == strtoupper($method)) {
-                Middleware::resolve($route['middleware']);
+        $index = array_key_last($this->routes);
+        $this->routes[$index]['middleware'] = $middleware;
+        return $this;
+    }
 
-                return require base_path('Http/controllers/' . $route['controller']);
+    /**
+     * @param  array  $attributes
+     * @param  callable  $callback
+     * @return void
+     */
+    public function group(array $attributes, callable $callback): void
+    {
+        $this->groupStack[] = $attributes;
+
+        $callback($this);
+
+        array_pop($this->groupStack);
+    }
+
+    /**
+     * @return string
+     */
+    protected function prefix(): string
+    {
+        $prefix = '';
+
+        foreach ($this->groupStack as $group) {
+            if (isset($group['prefix'])) {
+                $prefix .= trim($group['prefix'], '/') . '/';
             }
         }
 
-        $this->abort();
+        return $prefix;
     }
 
-    public function previousUrl()
+    /**
+     * @return mixed|null
+     */
+    protected function middlewareFromGroup(): mixed
     {
-        return $_SERVER['HTTP_REFERER'];
+        foreach (array_reverse($this->groupStack) as $group) {
+            if (isset($group['middleware'])) {
+                return $group['middleware'];
+            }
+        }
+
+        return null;
     }
 
-    protected function abort($code = 404): void
+    /**
+     * @param $uri
+     * @param $method
+     * @return mixed|void
+     * @throws Exception
+     */
+    public function route($uri, $method)
     {
-        http_response_code($code);
+        $uri = '/' . trim($uri, '/');
 
-        require base_path("views/{$code}.php");
+        foreach ($this->routes as $route) {
+            if ($route['uri'] === $uri && $route['method'] === strtoupper($method)) {
+                Middleware::resolve($route['middleware']);
 
-        die();
+                $controller = $route['controller'];
+
+                if (is_callable($controller)) {
+                    return $controller(); // Run closure
+                }
+
+                return require base_path('Http/controllers/' . $controller);
+            }
+        }
+
+        abort();
+    }
+
+    /**
+     * @return mixed|string
+     */
+    public function previousUrl(): mixed
+    {
+        return $_SERVER['HTTP_REFERER'] ?? '/';
     }
 }

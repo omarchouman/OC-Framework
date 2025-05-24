@@ -1,14 +1,5 @@
 <?php
 
-//return [
-//    '/' => 'controllers/index.php',
-//    '/about' => 'controllers/about.php',
-//    '/notes' => 'controllers/notes/index.php',
-//    '/note' => 'controllers/notes/show.php',
-//    '/notes/create' => 'controllers/notes/create.php',
-//    '/contact' => 'controllers/contact.php',
-//];
-
 
 $router->get('/', 'index.php');
 $router->get('/about', 'about.php');
@@ -31,3 +22,12 @@ $router->post('/register', 'registration/store.php')->only('guest');
 $router->get('/login', 'session/create.php')->only('guest');
 $router->post('/session', 'session/store.php')->only('guest');
 $router->delete('/session', 'session/destroy.php')->only('auth');
+
+$router->group([
+    'prefix' => 'test',
+    'middleware' => 'auth'
+], function ($router) {
+    $router->get('/testing', function() {
+        echo "Hello";
+    });
+});

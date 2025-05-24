@@ -2,19 +2,26 @@
 
 namespace Core;
 
+use Exception;
+
 class Container
 {
-    protected $bindings = [];
+    protected array $bindings = [];
 
-    public function bind($key, $resolver)
+    public function bind($key, $resolver): void
     {
         $this->bindings[$key] = $resolver;
     }
 
-    public function resolve($key)
+    /**
+     * @param $key
+     * @return mixed
+     * @throws Exception
+     */
+    public function resolve($key): mixed
     {
         if(!array_key_exists($key, $this->bindings)) {
-            throw new \Exception("No such key: {$key}");
+            throw new Exception("No such key: {$key}");
         }
 
         $resolver = $this->bindings[$key];

@@ -4,7 +4,12 @@ namespace Core;
 
 class Authenticator
 {
-    public function attempt($email, $password)
+    /**
+     * @param $email
+     * @param $password
+     * @return bool
+     */
+    public function attempt($email, $password): bool
     {
         $user = App::resolve(Database::class)->query('select * from users where email = :email', [
             'email' => $email
@@ -23,7 +28,11 @@ class Authenticator
         return false;
     }
 
-    public function login($user)
+    /**
+     * @param $user
+     * @return void
+     */
+    public function login($user): void
     {
         $_SESSION['user'] = [
             'email' => $user['email'],
@@ -32,7 +41,10 @@ class Authenticator
         session_regenerate_id(true);
     }
 
-    public function logout()
+    /**
+     * @return void
+     */
+    public function logout(): void
     {
         Session::destroy();
     }

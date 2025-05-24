@@ -6,22 +6,38 @@ class App
 {
     protected static $container;
 
-    public static function setContainer($container)
+    /**
+     * @param $container
+     * @return void
+     */
+    public static function setContainer($container): void
     {
         static::$container = $container;
     }
 
-    public static function container()
+    /**
+     * @return mixed
+     */
+    public static function container(): mixed
     {
         return static::$container;
     }
 
-    public static function bind($key, $resolver)
+    /**
+     * @param $key
+     * @param $resolver
+     * @return void
+     */
+    public static function bind($key, $resolver): void
     {
         static::container()->resolve($key, $resolver);
     }
 
-    public static function resolve($key)
+    /**
+     * @param $key
+     * @return mixed
+     */
+    public static function resolve($key): mixed
     {
         return static::container()->resolve($key);
     }

@@ -2,6 +2,8 @@
 
 namespace Core\Middleware;
 
+use Exception;
+
 class Middleware
 {
     public const MAP = [
@@ -9,18 +11,23 @@ class Middleware
         'auth' => Auth::class,
     ];
 
-    public static function resolve($key)
+    /**
+     * @param $key
+     * @return void
+     * @throws Exception
+     */
+    public static function resolve($key): void
     {
         if(!$key) {
             return;
         }
 
-        $middlware = static::MAP[$key] ?? false;
+        $middleware = static::MAP[$key] ?? false;
 
-        if(!$middlware) {
-            throw new \Exception("Middleware [$key] not found");
+        if(!$middleware) {
+            throw new Exception("Middleware [$key] not found");
         }
 
-        (new $middlware)->handle();
+        (new $middleware)->handle();
     }
 }
