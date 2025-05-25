@@ -1,0 +1,47 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use Core\Database\MigrationCreator;
+use Core\Database\Migrator;
+
+$command = $argv[1] ?? null;
+$name = $argv[2] ?? null;
+
+if (!$command) {
+    echo "Usage: php migrate [command] [name]\n";
+    echo "Commands:\n";
+    echo "  make [name]    Create a new migration\n";
+    echo "  run            Run all pending migrations\n";
+    echo "  rollback       Rollback the last batch of migrations\n";
+    exit(1);
+}
+
+switch ($command) {
+    case 'make':
+        if (!$name) {
+            echo "Error: Migration name is required\n";
+            exit(1);
+        }
+        $creator = new MigrationCreator();
+        $path = $creator->create($name);
+        echo "Created Migration: {$path}\n";
+        break;
+
+    case 'run':
+        $migrator = new Migrator();
+        $migrator->run();
+        echo "Migrations completed successfully\n";
+        break;
+
+    case 'rollback':
+        $migrator = new Migrator();
+        $migrator->rollback();
+        echo "Migrations rolled back successfully\n";
+        break;
+
+    default:
+        echo "Unknown command: {$command}\n";
+        exit(1);
+} 

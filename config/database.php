@@ -1,8 +1,12 @@
 <?php
 
 return [
-    'host' => env('DB_HOST', 'localhost'),
-    'port' => env('DB_PORT','3306'),
-    'dbname' => env('DB_DATABASE','my_app'),
-    'charset' => env('DB_CHARSET', 'utf8mb4'),
+    'driver' => 'mysql',
+    'host' => $_ENV['DB_HOST'] ?? 'localhost',
+    'database' => $_ENV['DB_DATABASE'] ?? 'oc_framework',
+    'username' => $_ENV['DB_USERNAME'] ?? 'root',
+    'password' => $_ENV['DB_PASSWORD'] ?? '',
+    'charset' => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
+    'prefix' => '',
 ];
